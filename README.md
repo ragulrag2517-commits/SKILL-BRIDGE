@@ -114,6 +114,67 @@ For production, set `SKILLBRIDGE_ENV=production`, `SKILLBRIDGE_SECRET_KEY`, `SKI
 
 `python app.py` is for local development only. No production deployment has been performed or claimed; deploy behind a production WSGI server and HTTPS reverse proxy before exposing the service publicly.
 
+## Deploy to PythonAnywhere
+
+The repository includes [wsgi.py](./wsgi.py) as the WSGI entry point. It defaults to production mode, disables demo-data seeding, and stores the SQLite database and uploads under the ignored `instance/` directory. Set `SKILLBRIDGE_SECRET_KEY` in PythonAnywhere's WSGI configuration before importing the application; production startup intentionally fails if the key is missing.
+
+1. Upload the project to your PythonAnywhere home directory (for example, `/home/YOUR_USERNAME/SkillBridge`) using the PythonAnywhere Files page or your own Git repository. Do not upload `.venv`, `.env`, `instance/`, or any database containing personal data.
+2. In a PythonAnywhere Bash console, create the virtual environment and install dependencies:
+
+   ```bash
+   cd ~/SkillBridge
+   python3.12 -m venv ~/.virtualenvs/skillbridge
+   source ~/.virtualenvs/skillbridge/bin/activate
+   python -m pip install --upgrade pip
+   python -m pip install -r requirements.txt
+   mkdir -p ~/var/skillbridge-uploads
+   ```
+
+3. In the PythonAnywhere **Web** tab, create a manual-config web app using the same Python version as the virtual environment. Set the virtualenv path to `/home/YOUR_USERNAME/.virtualenvs/skillbridge`.
+4. Open the WSGI configuration file shown in the Web tab. Keep its existing file location, and replace its contents with the following after substituting your PythonAnywhere username and a newly generated secret:
+
+   ```python
+   import os
+   import sys
+
+   project_home = "/home/YOUR_USERNAME/SkillBridge"
+   data_home = "/home/YOUR_USERNAME/var"
+
+   if project_home not in sys.path:
+       sys.path.insert(0, project_home)
+
+   os.makedirs(data_home, exist_ok=True)
+   os.environ["SKILLBRIDGE_ENV"] = "production"
+   os.environ["SKILLBRIDGE_SECRET_KEY"] = "PASTE_A_PRIVATE_RANDOM_SECRET_HERE"
+   os.environ["SKILLBRIDGE_DATABASE_PATH"] = os.path.join(data_home, "skillbridge.db")
+   os.environ["SKILLBRIDGE_UPLOAD_FOLDER"] = os.path.join(data_home, "skillbridge-uploads")
+   os.environ["SKILLBRIDGE_DEMO_DATA"] = "false"
+
+   from wsgi import application
+   ```
+
+   Generate the secret in a Bash console with `python -c 'import secrets; print(secrets.token_hex(32))'`. Paste it only into the PythonAnywhere WSGI configuration; do not commit it, put it in a public repository, or share it. Because the SQLite file and uploads are stored outside the code directory, updating the application files will not overwrite runtime data.
+5. In the Web tab, set the static files mapping from `/static/` to `/home/YOUR_USERNAME/SkillBridge/static/`, then click **Reload**. Visit your PythonAnywhere site and verify that the home page and `/health` return successfully.
+6. Create the first administrator from a Bash console using the same production settings as the WSGI file:
+
+   ```bash
+   cd ~/SkillBridge
+   source ~/.virtualenvs/skillbridge/bin/activate
+   export SKILLBRIDGE_ENV=production
+   export SKILLBRIDGE_DATABASE_PATH="$HOME/var/skillbridge.db"
+   export SKILLBRIDGE_UPLOAD_FOLDER="$HOME/var/skillbridge-uploads"
+   export SKILLBRIDGE_DEMO_DATA=false
+   read -s -p "Paste the same secret used in the WSGI file: " SKILLBRIDGE_SECRET_KEY
+   echo
+   export SKILLBRIDGE_SECRET_KEY
+   python -m flask --app app create-admin
+   unset SKILLBRIDGE_SECRET_KEY
+   ```
+
+   The command prompts for administrator details and a password; it does not print or store the plaintext password. Do not use the development demo accounts in production.
+
+Use the PythonAnywhere error log if the web app fails to import or start. Back up the production SQLite database and uploads regularly, restrict access to backups, and use HTTPS. SQLite is suitable for a small, low-traffic deployment; use a managed database and a migration plan before scaling or making schema changes to production data. Deployment is not complete until the Web tab has been reloaded and the live site has been verified.
+
 ## Database and uploads
 
 The schema is in `database/schema.sql`. The application initializes tables and applies the additive migrations in `database/db.py` on first request. Existing database records are not dropped. Uploads are stored under `uploads/`, limited by configured request size and file type/signature checks, and are excluded from Git. Configure persistent storage and backups for a deployment.

@@ -4,5 +4,6 @@ __pycache__/
 .env
 .vscode/
 *.db
+instance/
 uploads/*
 .DS_Store
