@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}SkillBridge | Login{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-5">
+        <div class="auth-card shadow-lg border-0">
+          <div class="auth-header">
+            <span class="eyebrow">Welcome back</span>
+            <h2>Login to SkillBridge</h2>
+          </div>
+          <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="mb-3">
+              <label for="email" class="form-label">Email address</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required />
+            </div>
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required />
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Login</button>
+          </form>
+          <div class="auth-meta mt-4">
+            <span>Need an account?</span>
+            <a href="{{ url_for('register') }}">Create one</a>
+          </div>
+          {% if demo_data_enabled %}
+          <div class="demo-box mt-4">
+            <small>Demo credentials</small>
+            <p><strong>Student:</strong> student@skillbridge.demo / student123</p>
+            <p class="mb-0">Use a demo role account for local development. Admin accounts must be created with the Flask CLI.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

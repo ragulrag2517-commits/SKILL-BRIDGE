@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block title %}Industry Dashboard | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        {% include 'industry_sidebar.html' %}
+      </div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div>
+            <p class="eyebrow">Industry portal</p>
+            <h2>Welcome, {{ user.first_name }}</h2>
+            <p class="text-muted mb-0">{{ dashboard.summary.company_name }}</p>
+          </div>
+          <a href="{{ url_for('industry_company_profile') }}" class="btn btn-outline-primary">Manage company profile</a>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
+          <span class="badge {% if dashboard.summary.verification_status == 'verified' %}bg-success-subtle text-success-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %} rounded-pill px-3 py-2">
+            Verification: {{ dashboard.summary.verification_status|title }}
+          </span>
+          {% if dashboard.summary.verification_status != 'verified' %}
+          <a class="small" href="{{ url_for('industry_company_profile') }}">Complete profile and request verification</a>
+          {% endif %}
+        </div>
+
+        <div class="row g-3">
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Total opportunities</span><strong>{{ dashboard.summary.total_opportunities }}</strong></div></div>
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Active internships</span><strong>{{ dashboard.summary.active_internships }}</strong></div></div>
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Active job postings</span><strong>{{ dashboard.summary.active_jobs }}</strong></div></div>
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Total applications</span><strong>{{ dashboard.summary.total_applications }}</strong></div></div>
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Shortlisted candidates</span><strong>{{ dashboard.summary.shortlisted }}</strong></div></div>
+          <div class="col-sm-6 col-xl-4"><div class="overview-card"><span>Selected candidates</span><strong>{{ dashboard.summary.selected }}</strong></div></div>
+        </div>
+
+        <div class="row g-4 mt-1">
+          <div class="col-xl-7">
+            <div class="chart-card h-100">
+              <h5>Applications by opportunity</h5>
+              {% if analytics.applications_by_opportunity %}
+              <canvas id="industryDashboardChart" height="180"></canvas>
+              {% else %}
+              <p class="text-muted mb-0">No opportunities or applications yet. Post an opportunity to start hiring.</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-xl-5">
+            <div class="chart-card h-100">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Recent applications</h5>
+                <a href="{{ url_for('industry_candidates') }}" class="small">View candidates</a>
+              </div>
+              {% if dashboard.recent_applications %}
+              <div class="table-responsive mt-3">
+                <table class="table align-middle">
+                  <thead><tr><th>Candidate</th><th>Opportunity</th><th>Status</th></tr></thead>
+                  <tbody>
+                    {% for application in dashboard.recent_applications %}
+                    <tr>
+                      <td>{{ application.first_name }} {{ application.last_name }}<div class="small text-muted">{{ application.applied_at }}</div></td>
+                      <td>{{ application.title }}</td>
+                      <td><span class="badge bg-light text-dark">{{ application.status }}</span></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              {% else %}
+              <p class="text-muted mt-3 mb-0">No applications received yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4 mt-1">
+          <div class="col-lg-6">
+            <div class="chart-card h-100">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Notifications</h5>
+                <a href="{{ url_for('industry_analytics') }}" class="small">Recruitment analytics</a>
+              </div>
+              {% if dashboard.notifications %}
+              <ul class="task-list">
+                {% for notification in dashboard.notifications %}
+                <li><strong>{{ notification.title }}</strong> — {{ notification.message }}<div class="small">{{ notification.created_at }}</div></li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted mt-3 mb-0">No notifications yet.</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="chart-card h-100">
+              <h5>Quick actions</h5>
+              <div class="d-grid gap-2 mt-3">
+                <a href="{{ url_for('create_industry_opportunity') }}" class="btn btn-primary">Create opportunity</a>
+                <a href="{{ url_for('industry_opportunities') }}" class="btn btn-outline-primary">Manage opportunities</a>
+                <a href="{{ url_for('industry_candidates') }}" class="btn btn-outline-primary">Review candidates</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% if analytics.applications_by_opportunity %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  new Chart(document.getElementById('industryDashboardChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ analytics.applications_by_opportunity | map(attribute='title') | list | tojson }},
+      datasets: [{
+        label: 'Applications',
+        data: {{ analytics.applications_by_opportunity | map(attribute='total') | list | tojson }},
+        backgroundColor: '#5b8cff',
+        borderRadius: 8
+      }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+</script>
+{% endif %}
+{% endblock %}

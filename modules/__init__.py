@@ -1,0 +1,1 @@
+"""SkillBridge application modules package."""

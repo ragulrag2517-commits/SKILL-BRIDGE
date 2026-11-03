@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Opportunities | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="page-header mb-4">
+      <div>
+        <p class="eyebrow">Student opportunities</p>
+        <h2>AI-driven opportunity recommendations</h2>
+      </div>
+      <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">Back to dashboard</a>
+    </div>
+
+    <div class="row g-4 mb-4">
+      <div class="col-lg-4">
+        <div class="chart-card h-100">
+          <h5>Compatibility snapshot</h5>
+          <div class="display-4 fw-bold text-primary">{{ analytics.compatibility }}%</div>
+          <div class="progress mt-3" style="height: 18px;">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ analytics.compatibility }}%;" aria-valuenow="{{ analytics.compatibility }}" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <div class="mt-3 text-muted small">Eligibility: {{ analytics.eligibility }}</div>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="chart-card h-100">
+          <h5>Recommended roles</h5>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            {% for role in analytics.career_roles %}
+            <span class="badge bg-primary-subtle text-primary-emphasis rounded-pill px-3 py-2">{{ role.role }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      {% for opportunity in opportunities %}
+      <div class="col-lg-6">
+        <div class="opportunity-card">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <div class="eyebrow small mb-2">{{ opportunity.type }}</div>
+              <h4>{{ opportunity.title }}</h4>
+              {% if opportunity.is_sample %}
+              <span class="badge bg-warning-subtle text-warning-emphasis">Development demo record</span>
+              {% endif %}
+            </div>
+            <span class="badge bg-success-subtle text-success-emphasis rounded-pill px-3 py-2">{{ opportunity.compatibility }}% match</span>
+          </div>
+          <div class="mt-3 text-muted">{{ opportunity.company }}</div>
+          <div class="small text-muted mt-1">{{ opportunity.location }} · {{ opportunity.mode }} · Deadline: {{ opportunity.deadline }}</div>
+          <div class="small mt-2"><strong>Academic eligibility:</strong> {{ opportunity.eligibility }}</div>
+          <div class="small"><strong>Skill fit:</strong> {{ opportunity.skill_fit }}</div>
+          <p class="mt-3 mb-3">{{ opportunity.description }}</p>
+
+          <div class="mb-3">
+            <strong>Required skills:</strong>
+            <div class="d-flex flex-wrap gap-2 mt-2">
+              {% for skill in opportunity.required_skills %}
+              <span class="badge bg-light text-dark rounded-pill px-2 py-1">{{ skill }}</span>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <strong>Matched skills:</strong>
+            <div class="small text-muted mt-1">{{ opportunity.matched_skills|join(', ') if opportunity.matched_skills else 'None yet' }}</div>
+          </div>
+
+          <div class="mb-3">
+            <strong>Missing skills:</strong>
+            <div class="small text-muted mt-1">{{ opportunity.missing_skills|join(', ') if opportunity.missing_skills else 'No critical gaps' }}</div>
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between gap-3">
+            <span class="badge {% if opportunity.eligible %}bg-success-subtle text-success-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %} rounded-pill px-3 py-2">
+              {{ 'Eligible' if opportunity.eligible else 'Needs development' }}
+            </span>
+            <form method="POST" action="{{ url_for('apply_opportunity', opportunity_id=opportunity.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button class="btn btn-primary btn-sm" type="submit" {% if not opportunity.eligible %}disabled{% endif %}>Apply now</button>
+            </form>
+          </div>
+          <div class="mt-3 small text-muted">{{ opportunity.recommendation_explanation }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

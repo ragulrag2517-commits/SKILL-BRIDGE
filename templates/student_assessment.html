@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Skill Assessment | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-xl-9">
+        <div class="page-header mb-4">
+          <div>
+            <p class="eyebrow">Student assessment</p>
+            <h2>Skill readiness evaluation</h2>
+          </div>
+          <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">Back to dashboard</a>
+        </div>
+
+        <div class="auth-card shadow-lg border-0 p-4">
+          <form method="POST" action="{{ url_for('skill_assessment') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            {% for question in questions %}
+            <div class="mb-4 pb-3 border-bottom">
+              <p class="fw-bold mb-2">{{ loop.index }}. {{ question.question }}</p>
+              <div class="d-grid gap-2">
+                {% for option in question.options %}
+                <label class="form-check-label border rounded p-2 px-3">
+                  <input class="form-check-input me-2" type="radio" name="{{ question.id }}" value="{{ option }}" required />
+                  {{ option }}
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-lg mt-3">Submit assessment</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

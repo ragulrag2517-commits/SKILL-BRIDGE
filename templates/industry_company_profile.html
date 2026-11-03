@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Company Profile | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">{% include 'industry_sidebar.html' %}</div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div><p class="eyebrow">Company profile</p><h2>Manage your organization</h2></div>
+          <a href="{{ url_for('industry_dashboard') }}" class="btn btn-outline-primary">Back to dashboard</a>
+        </div>
+        <div class="row g-4">
+          <div class="col-lg-8">
+            <div class="chart-card">
+              <form method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label" for="company_name">Company name</label>
+                    <input class="form-control" id="company_name" name="company_name" maxlength="150" required value="{{ profile.company_name or '' }}" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="industry_sector">Industry sector</label>
+                    <input class="form-control" id="industry_sector" name="industry_sector" maxlength="100" required value="{{ profile.industry_sector or '' }}" placeholder="e.g. Digital Health" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="website">Website</label>
+                    <input class="form-control" id="website" name="website" type="url" value="{{ profile.website or '' }}" placeholder="https://example.org" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="location">Location</label>
+                    <input class="form-control" id="location" name="location" maxlength="150" required value="{{ profile.location or '' }}" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="contact_email">Contact email</label>
+                    <input class="form-control" id="contact_email" name="contact_email" type="email" value="{{ profile.contact_email or '' }}" />
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="contact_phone">Contact phone</label>
+                    <input class="form-control" id="contact_phone" name="contact_phone" maxlength="30" value="{{ profile.contact_phone or '' }}" />
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="company_description">Company description</label>
+                    <textarea class="form-control" id="company_description" name="company_description" rows="5" minlength="20" maxlength="3000" required>{{ profile.company_description or '' }}</textarea>
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label" for="logo">Company logo (PNG or JPEG, max 2 MB)</label>
+                    <input class="form-control" id="logo" name="logo" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" />
+                  </div>
+                </div>
+                <button class="btn btn-primary mt-4" type="submit">Save company profile</button>
+              </form>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="chart-card">
+              <h5>Verification status</h5>
+              <span class="badge {% if profile.verification_status == 'verified' %}bg-success-subtle text-success-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %} rounded-pill px-3 py-2">{{ profile.verification_status|title }}</span>
+              <p class="text-muted mt-3">Verification is reviewed separately. Saving this profile does not mark your company as verified.</p>
+              {% if profile.verification_status != 'verified' %}
+              <form method="POST" action="{{ url_for('request_company_verification') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <button class="btn btn-outline-primary w-100" type="submit">Request verification</button>
+              </form>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

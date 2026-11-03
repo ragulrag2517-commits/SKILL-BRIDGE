@@ -1,0 +1,23 @@
+<aside class="sidebar-card shadow-sm border-0">
+  <div class="profile-box text-center">
+    {% if dashboard is defined and dashboard.profile and dashboard.profile.logo_filename %}
+    <img class="company-logo" src="{{ url_for('industry_company_logo', filename=dashboard.profile.logo_filename) }}" alt="Company logo" />
+    {% else %}
+    <div class="avatar-circle">{{ user.first_name[:1]|upper }}</div>
+    {% endif %}
+    <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+    <small class="text-muted">Industry recruiter</small>
+  </div>
+  <nav class="nav flex-column mt-4 sidebar-links">
+    <a href="{{ url_for('industry_dashboard') }}">Dashboard</a>
+    <a href="{{ url_for('industry_company_profile') }}">Company profile</a>
+    <a href="{{ url_for('industry_opportunities') }}">Opportunities</a>
+    <a href="{{ url_for('create_industry_opportunity') }}">Create opportunity</a>
+    <a href="{{ url_for('industry_candidates') }}">Candidates</a>
+    <a href="{{ url_for('industry_analytics') }}">Recruitment analytics</a>
+    <form method="POST" action="{{ url_for('logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <button type="submit" class="sidebar-logout-button">Logout</button>
+    </form>
+  </nav>
+</aside>

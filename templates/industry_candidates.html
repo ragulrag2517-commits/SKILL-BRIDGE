@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidates | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">{% include 'industry_sidebar.html' %}</div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div><p class="eyebrow">Recruitment</p><h2>Candidate management</h2></div>
+          <a href="{{ url_for('industry_analytics') }}" class="btn btn-outline-primary">View analytics</a>
+        </div>
+        <form method="GET" class="chart-card mb-4">
+          <div class="row g-3 align-items-end">
+            <div class="col-lg-4">
+              <label class="form-label" for="q">Search candidates</label>
+              <input class="form-control" id="q" name="q" value="{{ filters.q }}" placeholder="Name, degree, college, opportunity" />
+            </div>
+            <div class="col-lg-3">
+              <label class="form-label" for="opportunity_id">Opportunity</label>
+              <select class="form-select" id="opportunity_id" name="opportunity_id">
+                <option value="">All opportunities</option>
+                {% for opportunity in opportunities %}
+                <option value="{{ opportunity.id }}" {% if filters.opportunity_id == opportunity.id %}selected{% endif %}>{{ opportunity.title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label" for="status">Status</label>
+              <select class="form-select" id="status" name="status">
+                <option value="">All</option>
+                {% for status in statuses %}
+                <option value="{{ status }}" {% if filters.status == status %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-lg-2">
+              <label class="form-label" for="sort">Sort by</label>
+              <select class="form-select" id="sort" name="sort">
+                <option value="recent" {% if filters.sort == 'recent' %}selected{% endif %}>Recent</option>
+                <option value="compatibility" {% if filters.sort == 'compatibility' %}selected{% endif %}>AI compatibility</option>
+                <option value="name" {% if filters.sort == 'name' %}selected{% endif %}>Name</option>
+              </select>
+            </div>
+            <div class="col-lg-1"><button class="btn btn-primary w-100" type="submit">Go</button></div>
+          </div>
+        </form>
+
+        {% if candidates %}
+          {% for candidate in candidates %}
+          <article class="chart-card mb-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+              <div>
+                <h4 class="mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h4>
+                <div class="text-muted">{{ candidate.opportunity_title }} · Applied {{ candidate.applied_at }}</div>
+                <div class="small text-muted">{{ candidate.email }}</div>
+              </div>
+              <div class="text-lg-end">
+                <div class="candidate-score">{{ candidate.compatibility }}%</div>
+                <div class="small text-muted">AI skill compatibility</div>
+              </div>
+            </div>
+            <div class="row g-3 mt-2">
+              <div class="col-md-6">
+                <div class="candidate-detail">
+                  <strong>Academic information</strong>
+                  <div>{{ candidate.degree or 'Degree not provided' }}{% if candidate.branch %} · {{ candidate.branch }}{% endif %}</div>
+                  <div>{{ candidate.college or 'Institution not provided' }}{% if candidate.year_of_study %} · Year {{ candidate.year_of_study }}{% endif %}</div>
+                  <div>CGPA: {{ candidate.cgpa if candidate.cgpa is not none else 'Not provided' }} · {{ candidate.eligibility }}</div>
+                  {% if candidate.qualification_requirements %}<div class="small text-muted mt-1">Qualification criteria: {{ candidate.qualification_requirements }}</div>{% endif %}
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="candidate-detail">
+                  <strong>Digital portfolio</strong>
+                  {% if candidate.portfolio_headline or candidate.portfolio_summary or candidate.portfolio_projects %}
+                    <div>{{ candidate.portfolio_headline or '' }}</div>
+                    <div class="small text-muted">{{ candidate.portfolio_summary or candidate.portfolio_projects }}</div>
+                  {% else %}
+                    <div class="text-muted">Portfolio not provided.</div>
+                  {% endif %}
+                  {% if candidate.resume_filename %}
+                  <a class="btn btn-sm btn-outline-primary mt-2" href="{{ url_for('private_student_resume', student_id=candidate.student_id) }}">View resume (PDF)</a>
+                  {% else %}
+                  <div class="small text-muted mt-1">Resume not provided.</div>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-12">
+                <strong>Technical skills</strong>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  {% for skill in candidate.skills if skill.category and skill.category|lower == 'technical' %}
+                  <span class="badge bg-primary-subtle text-primary-emphasis">{{ skill.name }} · {{ skill.proficiency }}%</span>
+                  {% else %}<span class="text-muted small">No technical skills listed.</span>{% endfor %}
+                </div>
+                <strong class="d-block mt-3">Soft skills</strong>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                  {% for skill in candidate.skills if skill.category and skill.category|lower == 'soft' %}
+                  <span class="badge bg-info-subtle text-info-emphasis">{{ skill.name }} · {{ skill.proficiency }}%</span>
+                  {% else %}<span class="text-muted small">No soft skills listed.</span>{% endfor %}
+                </div>
+              </div>
+              <div class="col-md-4"><div class="candidate-detail"><strong>Matched skills</strong><div>{{ candidate.matched_skills|join(', ') if candidate.matched_skills else 'None at target proficiency' }}</div></div></div>
+              <div class="col-md-4"><div class="candidate-detail"><strong>Partially developed</strong><div>{{ candidate.partial_skills|join(', ') if candidate.partial_skills else 'None' }}</div></div></div>
+              <div class="col-md-4"><div class="candidate-detail"><strong>Missing skills</strong><div>{{ candidate.missing_skills|join(', ') if candidate.missing_skills else 'None' }}</div></div></div>
+            </div>
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+              <div>
+                <span class="badge bg-light text-dark">{{ candidate.status }}</span>
+                {% if candidate.history %}
+                <details class="small mt-2">
+                  <summary>Application history</summary>
+                  {% for event in candidate.history %}
+                  <div>{{ event.new_status }} · {{ event.changed_at }}{% if event.first_name %} · {{ event.first_name }} {{ event.last_name }}{% endif %}</div>
+                  {% endfor %}
+                </details>
+                {% endif %}
+              </div>
+              {% if candidate.status in ['Applied', 'Shortlisted'] %}
+              <form method="POST" action="{{ url_for('industry_application_status', application_id=candidate.application_id) }}" class="d-flex gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <select class="form-select form-select-sm" name="status" aria-label="Update application status">
+                  {% if candidate.status == 'Applied' %}<option value="Shortlisted">Shortlist</option>{% endif %}
+                  <option value="Selected">Select</option>
+                  <option value="Rejected">Reject</option>
+                </select>
+                <button class="btn btn-sm btn-primary" type="submit">Update status</button>
+              </form>
+              {% endif %}
+            </div>
+          </article>
+          {% endfor %}
+        {% else %}
+        <div class="chart-card empty-state">
+          <h4>No candidates found</h4>
+          <p class="text-muted mb-0">Applications for your published opportunities will appear here. Adjust your filters or publish an opportunity.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

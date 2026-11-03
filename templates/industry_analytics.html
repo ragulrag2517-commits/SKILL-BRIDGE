@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Recruitment Analytics | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">{% include 'industry_sidebar.html' %}</div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div><p class="eyebrow">Recruitment analytics</p><h2>Hiring insights</h2></div>
+          <a href="{{ url_for('industry_dashboard') }}" class="btn btn-outline-primary">Back to dashboard</a>
+        </div>
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-xl"><div class="overview-card"><span>Opportunities</span><strong>{{ dashboard.summary.total_opportunities }}</strong></div></div>
+          <div class="col-sm-6 col-xl"><div class="overview-card"><span>Applications</span><strong>{{ dashboard.summary.total_applications }}</strong></div></div>
+          <div class="col-sm-6 col-xl"><div class="overview-card"><span>Shortlisted</span><strong>{{ dashboard.summary.shortlisted }}</strong></div></div>
+          <div class="col-sm-6 col-xl"><div class="overview-card"><span>Selected</span><strong>{{ dashboard.summary.selected }}</strong></div></div>
+          <div class="col-sm-6 col-xl"><div class="overview-card"><span>Rejected</span><strong>{{ dashboard.summary.rejected }}</strong></div></div>
+        </div>
+        {% if dashboard.summary.total_applications %}
+        <div class="row g-4">
+          <div class="col-lg-7"><div class="chart-card"><h5>Applications by opportunity</h5><canvas id="applicationsChart" height="180"></canvas></div></div>
+          <div class="col-lg-5"><div class="chart-card"><h5>Application status distribution</h5><canvas id="statusChart" height="200"></canvas></div></div>
+          <div class="col-12">
+            <div class="chart-card">
+              <h5>Most demanded required skills</h5>
+              {% if analytics.demanded_skills %}
+              <canvas id="skillsChart" height="100"></canvas>
+              {% else %}
+              <p class="text-muted mb-0">No required skills have been added to your opportunities yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% else %}
+        <div class="chart-card empty-state">
+          <h4>No recruitment activity yet</h4>
+          <p class="text-muted">Charts will show database-backed application and skill demand once students apply.</p>
+          <a href="{{ url_for('industry_opportunities') }}" class="btn btn-primary">Manage opportunities</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</section>
+{% if dashboard.summary.total_applications %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  new Chart(document.getElementById('applicationsChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ analytics.applications_by_opportunity | map(attribute='title') | list | tojson }},
+      datasets: [{ label: 'Applications', data: {{ analytics.applications_by_opportunity | map(attribute='total') | list | tojson }}, backgroundColor: '#5b8cff', borderRadius: 8 }]
+    },
+    options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+  new Chart(document.getElementById('statusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: {{ analytics.status_counts.keys() | list | tojson }},
+      datasets: [{ data: {{ analytics.status_counts.values() | list | tojson }}, backgroundColor: ['#5b8cff', '#8b5cf6', '#f59e0b', '#22c55e'] }]
+    },
+    options: { responsive: true }
+  });
+  {% if analytics.demanded_skills %}
+  new Chart(document.getElementById('skillsChart'), {
+    type: 'bar',
+    data: {
+      labels: {{ analytics.demanded_skills | map(attribute='skill') | list | tojson }},
+      datasets: [{ label: 'Opportunities requiring skill', data: {{ analytics.demanded_skills | map(attribute='demand') | list | tojson }}, backgroundColor: '#8b5cf6', borderRadius: 8 }]
+    },
+    options: { indexAxis: 'y', responsive: true, scales: { x: { beginAtZero: true, ticks: { precision: 0 } } } }
+  });
+  {% endif %}
+</script>
+{% endif %}
+{% endblock %}

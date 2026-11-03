@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Profile | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="page-header mb-4">
+      <div><p class="eyebrow">Student profile</p><h2>{{ user.first_name }} {{ user.last_name }}</h2></div>
+      <a href="{{ url_for('student_dashboard') }}" class="btn btn-outline-primary">Back to dashboard</a>
+    </div>
+    <div class="row g-4">
+      <div class="col-lg-4">
+        <div class="auth-card p-4 h-100">
+          <div class="avatar-circle mx-auto mb-3">{{ user.first_name[:1]|upper }}</div>
+          <h5 class="text-center">Student Profile</h5>
+          <ul class="task-list mt-3">
+            <li>Email: {{ user.email }}</li>
+            <li>Role: Student</li>
+            <li>Status: Active</li>
+            {% if profile and profile.resume_filename %}
+            <li><a href="{{ url_for('private_student_resume', student_id=user.id) }}">Download your resume</a></li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+      <div class="col-lg-8">
+        <div class="auth-card p-4">
+          <h5>Academic information and resume</h5>
+          <p class="small text-muted">Recruiters can view your profile details and resume only after you apply to their opportunity.</p>
+          <form method="POST" enctype="multipart/form-data" action="{{ url_for('student_profile') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="row g-3 mt-1">
+              <div class="col-md-6">
+                <label class="form-label" for="college">College or institution</label>
+                <input class="form-control" id="college" name="college" maxlength="250" value="{{ profile.college if profile else '' }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="degree">Degree</label>
+                <input class="form-control" id="degree" name="degree" maxlength="250" value="{{ profile.degree if profile else '' }}" />
+              </div>
+              <div class="col-md-6">
+                <label class="form-label" for="branch">Branch / specialization</label>
+                <input class="form-control" id="branch" name="branch" maxlength="250" value="{{ profile.branch if profile else '' }}" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="year_of_study">Year of study</label>
+                <input class="form-control" id="year_of_study" name="year_of_study" type="number" min="1" max="10" value="{{ profile.year_of_study if profile and profile.year_of_study else '' }}" />
+              </div>
+              <div class="col-md-3">
+                <label class="form-label" for="cgpa">CGPA (0–10)</label>
+                <input class="form-control" id="cgpa" name="cgpa" type="number" min="0" max="10" step="0.01" value="{{ profile.cgpa if profile and profile.cgpa is not none else '' }}" />
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="interest_area">Career interests</label>
+                <input class="form-control" id="interest_area" name="interest_area" maxlength="250" value="{{ profile.interest_area if profile else '' }}" />
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="bio">Profile summary</label>
+                <textarea class="form-control" id="bio" name="bio" rows="3" maxlength="3000">{{ profile.bio if profile else '' }}</textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label" for="resume">Resume (PDF, max 8 MB)</label>
+                <input class="form-control" id="resume" name="resume" type="file" accept=".pdf,application/pdf" />
+                {% if profile and profile.resume_filename %}<small class="text-muted">A resume is already stored. Select a new file to replace it.</small>{% endif %}
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-4">Save profile</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

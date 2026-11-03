@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}SkillBridge | Register{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-7">
+        <div class="auth-card shadow-lg border-0">
+          <div class="auth-header">
+            <span class="eyebrow">Start your journey</span>
+            <h2>Create your SkillBridge account</h2>
+          </div>
+          <form method="POST" action="{{ url_for('register') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="first_name" class="form-label">First name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required />
+              </div>
+              <div class="col-md-6">
+                <label for="last_name" class="form-label">Last name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required />
+              </div>
+              <div class="col-md-8">
+                <label for="email" class="form-label">Email address</label>
+                <input type="email" class="form-control" id="email" name="email" required />
+              </div>
+              <div class="col-md-4">
+                <label for="role" class="form-label">Role</label>
+                <select class="form-select" id="role" name="role">
+                  <option value="student">Student</option>
+                  <option value="industry">Industry</option>
+                  <option value="academician">Academician</option>
+                  <option value="institution">Institution</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required minlength="8" />
+                <small class="text-muted">Use at least 8 characters, including one letter and one number.</small>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 mt-4">Register</button>
+          </form>
+          <div class="auth-meta mt-4">
+            <span>Already registered?</span>
+            <a href="{{ url_for('login') }}">Login here</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

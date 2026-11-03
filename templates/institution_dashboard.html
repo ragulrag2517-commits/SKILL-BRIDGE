@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Institution Dashboard | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <aside class="sidebar-card shadow-sm border-0">
+          <div class="profile-box text-center">
+            <div class="avatar-circle">{{ user.first_name[:1]|upper }}</div>
+            <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+            <small class="text-muted">Institution</small>
+          </div>
+          <div class="nav flex-column mt-4 sidebar-links">
+            <a href="{{ url_for('institution_dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('institution_dashboard') }}#departments">Departments</a>
+            <a href="{{ url_for('institution_dashboard') }}#activities">Recent activities</a>
+            <form method="POST" action="{{ url_for('logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="sidebar-logout-button">Logout</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div>
+            <p class="eyebrow">Institution portal</p>
+            <h2>Academic and placement performance</h2>
+            <p class="text-muted mb-0">
+              {% if profile and profile.institution_name %}{{ profile.institution_name }}{% else %}Institution profile not configured{% endif %}
+            </p>
+          </div>
+          <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-outline-primary">Sign out</button>
+          </form>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Associated students</span><strong>{{ counts.students }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Academicians</span><strong>{{ counts.academicians }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Internship participants</span><strong>{{ counts.internship_students }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Student applications</span><strong>{{ counts.applications }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Selected students</span><strong>{{ counts.selected }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Collaboration activities</span><strong>{{ counts.collaborations }}</strong></div></div>
+        </div>
+
+        <div class="row g-4 mt-1">
+          <div class="col-xl-7">
+            <div class="chart-card">
+              <h5 id="departments">Department participation</h5>
+              {% if departments %}
+              <div class="table-responsive mt-3">
+                <table class="table align-middle"><thead><tr><th>Department</th><th>Students</th></tr></thead>
+                  <tbody>{% for department in departments %}<tr><td>{{ department.department }}</td><td>{{ department.students }}</td></tr>{% endfor %}</tbody>
+                </table>
+              </div>
+              {% else %}
+              <p class="text-muted mt-3 mb-0">No student department data is associated with this institution yet.</p>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-xl-5">
+            <div class="chart-card">
+              <h5 id="activities">Recent activities</h5>
+              {% if recent_activities %}
+              <ul class="task-list">
+                {% for activity in recent_activities %}
+                <li><strong>{{ activity.title }}</strong> — {{ activity.message }}<div class="small text-muted">{{ activity.created_at }}</div></li>
+                {% endfor %}
+              </ul>
+              {% else %}
+              <p class="text-muted mt-3 mb-0">No institutional notifications yet.</p>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ role|title }} Dashboard | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <aside class="sidebar-card shadow-sm border-0">
+          <div class="profile-box text-center">
+            <div class="avatar-circle">{{ user['user_email'][:1] | upper }}</div>
+            <h5 class="mb-1">{{ role|title }}</h5>
+            <small class="text-muted">{{ user['user_email'] }}</small>
+          </div>
+          <div class="nav flex-column mt-4 sidebar-links">
+            <a href="{{ url_for('dashboard') }}" class="active">Dashboard</a>
+            {% if role == 'student' %}
+            <a href="{{ url_for('student_profile') }}">My profile</a>
+            <a href="{{ url_for('skill_assessment') }}">Skill assessment</a>
+            <a href="{{ url_for('student_opportunities') }}">Opportunities</a>
+            <a href="{{ url_for('student_career_roadmap') }}">Career roadmap</a>
+            {% elif role == 'industry' %}
+            <a href="{{ url_for('industry_company_profile') }}">Company profile</a>
+            <a href="{{ url_for('industry_opportunities') }}">Opportunities</a>
+            <a href="{{ url_for('industry_candidates') }}">Candidates</a>
+            <a href="{{ url_for('industry_analytics') }}">Analytics</a>
+            {% elif role == 'academician' %}
+            <a href="{{ url_for('academician_dashboard') }}#profile">Faculty profile</a>
+            <a href="{{ url_for('academician_dashboard') }}#activity">Research and activities</a>
+            {% elif role == 'institution' %}
+            <a href="{{ url_for('institution_dashboard') }}#departments">Departments</a>
+            <a href="{{ url_for('institution_dashboard') }}#activities">Recent activities</a>
+            {% elif role == 'admin' %}
+            <a href="{{ url_for('admin_dashboard') }}#registrations">Recent registrations</a>
+            {% endif %}
+            <form method="POST" action="{{ url_for('logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="sidebar-logout-button">Logout</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div>
+            <p class="eyebrow">Role dashboard</p>
+            <h2>{{ role|title }} workspace</h2>
+          </div>
+          <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-outline-primary">Sign out</button>
+          </form>
+        </div>
+
+        <div class="chart-card">
+          <h5>Role dashboard</h5>
+          <p class="text-muted mb-0">Use the role-specific dashboard and navigation links to view current database-backed information.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}SkillBridge | Home{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center g-5">
+      <div class="col-lg-7">
+        <p class="eyebrow">Academia–Industry Collaboration Portal</p>
+        <h1>Bridge academic talent with industry opportunity.</h1>
+        <p class="lead text-muted">
+          SkillBridge helps students, industries, academicians, institutions and administrators collaborate through AI-powered skill mapping, internships, placement intelligence, and career development.
+        </p>
+        <div class="d-flex flex-wrap gap-3 mt-4">
+          <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+          <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+        </div>
+        <div class="stats-row mt-5">
+          <div class="stat-card">
+            <strong>{{ platform_counts.students }}</strong>
+            <span>Student accounts</span>
+          </div>
+          <div class="stat-card">
+            <strong>{{ platform_counts.opportunities }}</strong>
+            <span>Open opportunities</span>
+          </div>
+          <div class="stat-card">
+            <strong>{{ platform_counts.roles }}</strong>
+            <span>Connected user roles</span>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="dashboard-preview card shadow-lg border-0">
+          <div class="card-body p-4">
+            <div class="preview-header d-flex justify-content-between align-items-center mb-4">
+              <div>
+                <span class="chip chip-purple">Platform overview</span>
+                <h5 class="mb-0 mt-2">Current database records</h5>
+              </div>
+            </div>
+            <div class="row g-3 mt-2">
+              <div class="col-6">
+                <div class="metric-box">
+                  <span>Student accounts</span>
+                  <strong>{{ platform_counts.students }}</strong>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="metric-box">
+                  <span>Open opportunities</span>
+                  <strong>{{ platform_counts.opportunities }}</strong>
+                </div>
+              </div>
+            </div>
+            {% if demo_data_enabled %}
+            <p class="small text-muted mt-3 mb-0">Development demo data may be included in these counts.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="py-5 bg-light">
+  <div class="container">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">Core capabilities</p>
+      <h2>Everything needed for modern skill-driven hiring</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-xl-3">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-primary-soft">AI</div>
+          <h5>AI skill mapping</h5>
+          <p>Compare student skill profiles against industry demands to reveal missing capabilities and personalized recommendations.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-purple-soft">Jobs</div>
+          <h5>Opportunity marketplace</h5>
+          <p>Connect students to internships, internships, placements, certifications and mentorship opportunities.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-blue-soft">Portfolio</div>
+          <h5>Digital portfolio</h5>
+          <p>Showcase academic work, certifications, projects and assessment scores in a verified and professional portfolio.</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-xl-3">
+        <div class="feature-card h-100">
+          <div class="feature-icon bg-success-soft">Reports</div>
+          <h5>Analytics</h5>
+          <p>Monitor skill readiness, placement trend, industry collaboration and institutional performance with dashboards.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if demo_data_enabled %}
+<section id="demo" class="py-5">
+  <div class="container">
+    <div class="section-heading text-center mb-5">
+      <p class="eyebrow">Demo access</p>
+      <h2>Professional role profiles</h2>
+    </div>
+    <div class="row g-4">
+      <div class="col-md-6 col-lg-4">
+        <div class="demo-card h-100">
+          <div class="demo-title">Student</div>
+          <p>Email: student@skillbridge.demo</p>
+          <p>Password: student123</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="demo-card h-100">
+          <div class="demo-title">Industry</div>
+          <p>Email: industry@skillbridge.demo</p>
+          <p>Password: industry123</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="demo-card h-100">
+          <div class="demo-title">Academician</div>
+          <p>Email: academician@skillbridge.demo</p>
+          <p>Password: academician123</p>
+        </div>
+      </div>
+      <div class="col-md-6 col-lg-4">
+        <div class="demo-card h-100">
+          <div class="demo-title">Institution</div>
+          <p>Email: institution@skillbridge.demo</p>
+          <p>Password: institution123</p>
+        </div>
+      </div>
+    </div>
+    <div class="mt-4 text-center text-muted">
+      <small>Admin access is initialized securely during the first application startup and is not available through the public registration form.</small>
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

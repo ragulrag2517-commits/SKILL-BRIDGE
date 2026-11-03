@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Dashboard | SkillBridge{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-lg-3">
+        <aside class="sidebar-card shadow-sm border-0">
+          <div class="profile-box text-center">
+            <div class="avatar-circle">{{ user.first_name[:1]|upper }}</div>
+            <h5 class="mb-1">{{ user.first_name }} {{ user.last_name }}</h5>
+            <small class="text-muted">Student</small>
+          </div>
+          <div class="nav flex-column mt-4 sidebar-links">
+            <a href="{{ url_for('student_dashboard') }}" class="active">Dashboard</a>
+            <a href="{{ url_for('student_profile') }}">My Profile</a>
+            <a href="{{ url_for('skill_assessment') }}">Skill Assessment</a>
+            <a href="{{ url_for('skill_analysis') }}">AI Skill Analysis</a>
+            <a href="{{ url_for('student_opportunities') }}">Opportunities</a>
+            <a href="{{ url_for('student_career_roadmap') }}">Career Roadmap</a>
+            <form method="POST" action="{{ url_for('logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="sidebar-logout-button">Logout</button>
+            </form>
+          </div>
+        </aside>
+      </div>
+      <div class="col-lg-9">
+        <div class="page-header mb-4">
+          <div>
+            <p class="eyebrow">Student portal</p>
+            <h2>Welcome back, {{ user.first_name }}</h2>
+          </div>
+          <form method="POST" action="{{ url_for('logout') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button type="submit" class="btn btn-outline-primary">Sign out</button>
+          </form>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Placement readiness</span><strong>{{ analytics.compatibility }}%</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Skill matches</span><strong>{{ analytics.matched|length }}</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Proficiency fit</span><strong>{{ analytics.proficiency_compatibility }}%</strong></div></div>
+          <div class="col-md-6 col-xl-3"><div class="overview-card"><span>Priority roles</span><strong>{{ analytics.career_roles|length }}</strong></div></div>
+        </div>
+
+        <div class="row g-4 mt-1">
+          <div class="col-xl-7">
+            <div class="chart-card">
+              <h5>Your recorded skills</h5>
+              {% if skills %}
+              <div class="d-grid gap-3 mt-3">
+                {% for skill in skills %}
+                <div>
+                  <div class="d-flex justify-content-between small mb-1">
+                    <span>{{ skill.name }}</span><span>{{ skill.proficiency }}%</span>
+                  </div>
+                  <div class="progress" role="progressbar" aria-label="{{ skill.name }} proficiency"
+                       aria-valuenow="{{ skill.proficiency }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress-bar" style="width: {{ skill.proficiency }}%"></div>
+                  </div>
+                </div>
+                {% endfor %}
+              </div>
+              {% else %}
+              <p class="text-muted mt-3 mb-0">No skills are recorded yet. Complete the skill assessment to start your profile.</p>
+              {% endif %}
+              <div class="row g-4 mt-1">
+                <div class="col-12">
+                  <div class="chart-card">
+                    <h5>Recruitment notifications</h5>
+                    {% if notifications %}
+                    <ul class="task-list">
+                      {% for notification in notifications %}
+                      <li><strong>{{ notification.title }}</strong> — {{ notification.message }}<div class="small">{{ notification.created_at }}</div></li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-muted mt-3 mb-0">Application status updates will appear here.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-xl-5">
+            <div class="chart-card">
+              <h5>Next actions</h5>
+              <ul class="task-list">
+                <li><a href="{{ url_for('skill_assessment') }}">Complete skill assessment</a></li>
+                <li><a href="{{ url_for('student_profile') }}">Update your portfolio</a></li>
+                <li><a href="{{ url_for('student_opportunities') }}">Apply for recommended opportunities</a></li>
+                <li><a href="{{ url_for('student_career_roadmap') }}">Review your career roadmap</a></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
