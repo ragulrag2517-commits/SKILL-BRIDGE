@@ -6,4 +6,5 @@ __pycache__/
 *.db
 instance/
 uploads/*
+.streamlit/secrets.toml
 .DS_Store

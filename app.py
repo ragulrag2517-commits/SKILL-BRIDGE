@@ -1,4 +1,5 @@
 import hmac
+import io
 import os
 import re
 import secrets
@@ -9,7 +10,7 @@ from uuid import uuid4
 from urllib.parse import urlsplit
 
 import click
-from flask import Flask, abort, flash, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, abort, flash, redirect, render_template, request, send_file, send_from_directory, session, url_for
 from sqlalchemy import select
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
@@ -1129,7 +1130,7 @@ def private_student_resume(student_id):
         else:
             allowed = False
         profile = conn.execute(
-            'SELECT resume_filename FROM student_profiles WHERE user_id = ?',
+            'SELECT resume_filename, resume_data FROM student_profiles WHERE user_id = ?',
             (student_id,),
         ).fetchone() if allowed else None
     finally:
@@ -1137,6 +1138,13 @@ def private_student_resume(student_id):
     filename = profile['resume_filename'] if profile else None
     if not filename or secure_filename(filename) != filename:
         abort(404)
+    if profile['resume_data']:
+        return send_file(
+            io.BytesIO(profile['resume_data']),
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name='resume.pdf',
+        )
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
 
 

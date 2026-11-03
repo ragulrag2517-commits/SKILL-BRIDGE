@@ -180,7 +180,7 @@ def get_industry_analytics(user_id):
         ).fetchall()
         demanded_skills = conn.execute(
             """
-            SELECT os.skill, COUNT(DISTINCT os.opportunity_id) AS demand
+            SELECT MIN(os.skill) AS skill, COUNT(DISTINCT os.opportunity_id) AS demand
             FROM opportunity_skills os
             JOIN opportunities o ON o.id = os.opportunity_id
             WHERE o.company_id = ? AND os.is_required = 1

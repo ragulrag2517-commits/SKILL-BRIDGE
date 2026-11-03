@@ -36,11 +36,14 @@ Admin account creation is a separate CLI action and public registration cannot a
 - Rule-based skill matching; no paid AI API is used
 - Seeded development opportunities and learning programmes are labeled as demo records
 
+The project also provides a Streamlit Community Cloud entry point in [streamlit_app.py](./streamlit_app.py). The original Flask entry point remains available as `app.py`; Streamlit uses the existing database modules and login hashes rather than replacing the Flask app.
+
 ## Project layout
 
 ```text
 SkillBridge/
 ├── app.py
+├── streamlit_app.py
 ├── config.py
 ├── requirements.txt
 ├── database/
@@ -72,6 +75,19 @@ python app.py
 
 Open <http://127.0.0.1:5000>. The bundled server binds to loopback and runs with debug mode disabled. Keep the same secret key in the same PowerShell session while using the app.
 
+To run the Streamlit interface locally instead:
+
+```powershell
+cd C:\Users\ADMIN\Desktop\SkillBridge
+.\.venv\Scripts\Activate.ps1
+$env:SKILLBRIDGE_ENV = "development"
+$env:SKILLBRIDGE_DEMO_DATA = "false"
+$env:SKILLBRIDGE_SECRET_KEY = (python -c "import secrets; print(secrets.token_hex(32))")
+python -m streamlit run streamlit_app.py
+```
+
+Open <http://localhost:8501>. The Streamlit UI uses the current project database; the existing Flask site remains available by running `python app.py`.
+
 For local development, demo data is enabled by default. To disable automatic demo seeding, set:
 
 ```powershell
@@ -101,6 +117,7 @@ The app loads a local `.env` file when present. `.env` is ignored by Git. See [.
 | `SKILLBRIDGE_ENV` | `development` or `production`; production requires an explicit secret and enables secure session cookies |
 | `SKILLBRIDGE_SECRET_KEY` | Flask session-signing key; use a random private value |
 | `SKILLBRIDGE_DATABASE_PATH` | SQLite file path; defaults to `database/skillbridge.db` |
+| `SKILLBRIDGE_DATABASE_URL` | Optional PostgreSQL connection URL; used by Streamlit Cloud for durable data |
 | `SKILLBRIDGE_UPLOAD_FOLDER` | Upload storage path; defaults to `uploads/` |
 | `SKILLBRIDGE_DEMO_DATA` | Enable demo seeding in non-production environments; defaults to `true` |
 
@@ -114,70 +131,34 @@ For production, set `SKILLBRIDGE_ENV=production`, `SKILLBRIDGE_SECRET_KEY`, `SKI
 
 `python app.py` is for local development only. No production deployment has been performed or claimed; deploy behind a production WSGI server and HTTPS reverse proxy before exposing the service publicly.
 
-## Deploy to PythonAnywhere
+## Deploy the Streamlit app for free
 
-The repository includes [wsgi.py](./wsgi.py) as the WSGI entry point. It defaults to production mode, disables demo-data seeding, and stores the SQLite database and uploads under the ignored `instance/` directory. Set `SKILLBRIDGE_SECRET_KEY` in PythonAnywhere's WSGI configuration before importing the application; production startup intentionally fails if the key is missing.
+Streamlit Community Cloud runs [streamlit_app.py](./streamlit_app.py), not the Flask `app.py`. The Streamlit page reuses the existing SQLite/PostgreSQL data-access functions and account password hashes. This conversion is a separate interface; it does not remove the Flask app.
 
-1. Upload the project to your PythonAnywhere home directory (for example, `/home/YOUR_USERNAME/SkillBridge`) using the PythonAnywhere Files page or your own Git repository. Do not upload `.venv`, `.env`, `instance/`, or any database containing personal data.
-2. In a PythonAnywhere Bash console, create the virtual environment and install dependencies:
+The public Streamlit host does not provide durable local disk for application records. Use a Supabase PostgreSQL database for durable profiles, applications, and other records. A user-created Supabase project and its private connection string are required; do not commit or share the connection string.
 
-   ```bash
-   cd ~/SkillBridge
-   python3.12 -m venv ~/.virtualenvs/skillbridge
-   source ~/.virtualenvs/skillbridge/bin/activate
-   python -m pip install --upgrade pip
-   python -m pip install -r requirements.txt
-   mkdir -p ~/var/skillbridge-uploads
+1. Create a free Supabase project and copy its PostgreSQL connection string from **Project Settings → Database**. Use the connection string with SSL enabled. The database user must be allowed to create tables and apply additive column migrations on first app startup.
+2. Push the latest code to GitHub. Do not add a local `.db` file, `instance/`, `.env`, uploaded files, or `.streamlit/secrets.toml` to the repository.
+3. Sign in at [share.streamlit.io](https://share.streamlit.io/) with the GitHub account that can access the repository. Create an app from `ragulrag2517-commits/SKILL-BRIDGE`, branch `main`, and main file path `streamlit_app.py`.
+4. In the app's **Advanced settings → Secrets**, add the following TOML and substitute private values:
+
+   ```toml
+   SKILLBRIDGE_ENV = "production"
+   SKILLBRIDGE_SECRET_KEY = "GENERATE_A_PRIVATE_RANDOM_VALUE"
+   SKILLBRIDGE_DATABASE_URL = "postgresql://USER:PASSWORD@HOST:PORT/postgres?sslmode=require"
+   SKILLBRIDGE_DEMO_DATA = "false"
    ```
 
-3. In the PythonAnywhere **Web** tab, create a manual-config web app using the same Python version as the virtual environment. Set the virtualenv path to `/home/YOUR_USERNAME/.virtualenvs/skillbridge`.
-4. Open the WSGI configuration file shown in the Web tab. Keep its existing file location, and replace its contents with the following after substituting your PythonAnywhere username and a newly generated secret:
+   Generate the app secret locally using `python -c "import secrets; print(secrets.token_hex(32))"`. Keep both secret values in Streamlit/Supabase account settings only. Never send them in chat or commit them.
+5. Deploy and wait for Streamlit's health/build status. Test registration, login, a profile edit, an application, then restart/reload and verify those records remain in Supabase. On errors, check the Streamlit app logs and Supabase database connection settings.
 
-   ```python
-   import os
-   import sys
+The database adapter creates the schema on first run and applies additive migrations. Back up the database before schema changes. Uploaded resumes are stored in the database with an 8 MB size limit; they are only returned to the profile owner. A free-tier database has storage and compute limits.
 
-   project_home = "/home/YOUR_USERNAME/SkillBridge"
-   data_home = "/home/YOUR_USERNAME/var"
-
-   if project_home not in sys.path:
-       sys.path.insert(0, project_home)
-
-   os.makedirs(data_home, exist_ok=True)
-   os.environ["SKILLBRIDGE_ENV"] = "production"
-   os.environ["SKILLBRIDGE_SECRET_KEY"] = "PASTE_A_PRIVATE_RANDOM_SECRET_HERE"
-   os.environ["SKILLBRIDGE_DATABASE_PATH"] = os.path.join(data_home, "skillbridge.db")
-   os.environ["SKILLBRIDGE_UPLOAD_FOLDER"] = os.path.join(data_home, "skillbridge-uploads")
-   os.environ["SKILLBRIDGE_DEMO_DATA"] = "false"
-
-   from wsgi import application
-   ```
-
-   Generate the secret in a Bash console with `python -c 'import secrets; print(secrets.token_hex(32))'`. Paste it only into the PythonAnywhere WSGI configuration; do not commit it, put it in a public repository, or share it. Because the SQLite file and uploads are stored outside the code directory, updating the application files will not overwrite runtime data.
-5. In the Web tab, set the static files mapping from `/static/` to `/home/YOUR_USERNAME/SkillBridge/static/`, then click **Reload**. Visit your PythonAnywhere site and verify that the home page and `/health` return successfully.
-6. Create the first administrator from a Bash console using the same production settings as the WSGI file:
-
-   ```bash
-   cd ~/SkillBridge
-   source ~/.virtualenvs/skillbridge/bin/activate
-   export SKILLBRIDGE_ENV=production
-   export SKILLBRIDGE_DATABASE_PATH="$HOME/var/skillbridge.db"
-   export SKILLBRIDGE_UPLOAD_FOLDER="$HOME/var/skillbridge-uploads"
-   export SKILLBRIDGE_DEMO_DATA=false
-   read -s -p "Paste the same secret used in the WSGI file: " SKILLBRIDGE_SECRET_KEY
-   echo
-   export SKILLBRIDGE_SECRET_KEY
-   python -m flask --app app create-admin
-   unset SKILLBRIDGE_SECRET_KEY
-   ```
-
-   The command prompts for administrator details and a password; it does not print or store the plaintext password. Do not use the development demo accounts in production.
-
-Use the PythonAnywhere error log if the web app fails to import or start. Back up the production SQLite database and uploads regularly, restrict access to backups, and use HTTPS. SQLite is suitable for a small, low-traffic deployment; use a managed database and a migration plan before scaling or making schema changes to production data. Deployment is not complete until the Web tab has been reloaded and the live site has been verified.
+The Streamlit conversion currently covers student profile/skills, assessments, opportunities, applications, and career roadmaps; industry profiles, opportunity publishing, candidate status updates and analytics; and the current academician, institution, and admin summary dashboards. The existing Flask application contains incomplete Phase 6–9 workflows; the Streamlit interface does not claim those unimplemented faculty, FDP, research, institution administration, moderation, placement, or internship-tracking features are complete. No live deployment is claimed until it is deployed and verified from the user's Streamlit account.
 
 ## Database and uploads
 
-The schema is in `database/schema.sql`. The application initializes tables and applies the additive migrations in `database/db.py` on first request. Existing database records are not dropped. Uploads are stored under `uploads/`, limited by configured request size and file type/signature checks, and are excluded from Git. Configure persistent storage and backups for a deployment.
+The schema is in `database/schema.sql`. The application initializes tables and applies additive migrations in `database/db.py` on first request (Flask) or startup (Streamlit). Existing database records are not dropped. Flask uploads are stored under `uploads/`, limited by configured request size and file type/signature checks, and excluded from Git. The Streamlit student profile stores its PDF resume in the configured database.
 
 ## Tests
 

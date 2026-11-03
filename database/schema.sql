@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS student_profiles (
     bio TEXT,
     interest_area TEXT,
     resume_filename TEXT,
+    resume_data BLOB,
     placement_readiness INTEGER DEFAULT 0,
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
